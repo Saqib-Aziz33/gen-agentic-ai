@@ -1,11 +1,13 @@
+# https://docs.langchain.com/oss/python/langchain/quickstart
+
 from dataclasses import dataclass
 from langchain.tools import tool, ToolRuntime
-from dotenv import load_dotenv
 from langchain.agents import create_agent
-from langchain_google_genai import ChatGoogleGenerativeAI
 from pprint import pprint
 from langgraph.checkpoint.memory import InMemorySaver
 from langchain.agents.structured_output import ToolStrategy
+from langchain_google_genai import ChatGoogleGenerativeAI
+from dotenv import load_dotenv
 import os
 
 load_dotenv()
