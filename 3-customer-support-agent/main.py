@@ -13,7 +13,7 @@ test_email_contents = [
 
 # Test with an urgent billing issue
 initial_state = {
-    "email_content": test_email_contents[0],
+    "email_content": test_email_contents[4],
     "sender_email": "customer@example.com",
     "email_id": "email_123",
     "messages": []
@@ -23,18 +23,22 @@ initial_state = {
 config = {"configurable": {"thread_id": "customer_123"}}
 result = app.invoke(initial_state, config)
 # The graph will pause at human_review
-print(f"human review interrupt:{result['__interrupt__']}")
+print(result)
 
-# When ready, provide human input to resume
-from langgraph.types import Command
+if result.get('__interrupt__') == 'human_review':
+    print("Email flagged for human review. Awaiting input...")
+    print(f"human review interrupt:{result['__interrupt__']}")
 
-human_response = Command(
-    resume={
-        "approved": True,
-        "edited_response": "We sincerely apologize for the double charge. I've initiated an immediate refund..."
-    }
-)
+    # When ready, provide human input to resume
+    from langgraph.types import Command
 
-# Resume execution
-final_result = app.invoke(human_response, config)
-print(f"Email sent successfully!")
+    human_response = Command(
+        resume={
+            "approved": True,
+            "edited_response": "We sincerely apologize for the double charge. I've initiated an immediate refund..."
+        }
+    )
+
+    # Resume execution
+    final_result = app.invoke(human_response, config)
+    print(f"Email sent successfully!")
