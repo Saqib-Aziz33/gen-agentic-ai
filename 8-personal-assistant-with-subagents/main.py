@@ -4,6 +4,8 @@ Personal Assistant Supervisor Example
 This example demonstrates the tool calling pattern for multi-agent systems.
 A supervisor agent coordinates specialized sub-agents (calendar and email)
 that are wrapped as tools.
+
+https://docs.langchain.com/oss/python/langchain/multi-agent/subagents-personal-assistant
 """
 
 from langchain.tools import tool

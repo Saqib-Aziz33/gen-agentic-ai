@@ -1,3 +1,5 @@
+# https://docs.langchain.com/oss/python/langchain/sql-agent
+
 from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model
 from load_database import load_database

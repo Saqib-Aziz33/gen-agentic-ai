@@ -4,6 +4,8 @@ Customer Support State Machine Example
 This example demonstrates the state machine pattern.
 A single agent dynamically changes its behavior based on the current_step state,
 creating a state machine for sequential information collection.
+
+https://docs.langchain.com/oss/python/langchain/multi-agent/handoffs-customer-support
 """
 from dotenv import load_dotenv
 from langchain_core.utils.uuid import uuid7
