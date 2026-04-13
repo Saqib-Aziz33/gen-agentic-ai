@@ -5,7 +5,7 @@
 ### 1️⃣ Install Dependencies
 
 ```bash
-pip install langchain langchain-openai langchain-community langgraph python-telegram-bot python-dotenv pydantic
+pip install langchain langchain-openai langchain-community langgraph python-telegram-bot fastapi uvicorn httpx python-dotenv pydantic
 ```
 
 **Or** use the requirements file:
@@ -24,12 +24,17 @@ TAVILY_API_KEY=your_tavily_key_here
 
 # Optional - for Telegram bot
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
+
+# Optional - for Chatwoot integration
+CHATWOOT_ACCESS_TOKEN=your_chatwoot_agent_bot_token
+CHATWOOT_BASE_URL=https://app.chatwoot.com
 ```
 
 **Get API Keys:**
 - **OpenAI**: https://platform.openai.com/api-keys
 - **Tavily**: https://app.tavily.com/
 - **Telegram Bot Token**: Message @BotFather on Telegram
+- **Chatwoot Access Token**: Create Agent Bot in Chatwoot (see CHATWOOT_SETUP.md)
 
 ### 3️⃣ Run the Agent
 
@@ -57,6 +62,18 @@ python bot.py
 **Or** on Windows, just double-click: `start_bot.bat`
 
 Then search for your bot on Telegram and start chatting!
+
+#### Option C: Chatwoot Integration
+
+```bash
+python chatwoot_bot.py
+```
+
+**Or** on Windows, just double-click: `start_chatwoot.bat`
+
+Then configure the webhook URL in Chatwoot Settings → Bots.
+
+**See `CHATWOOT_SETUP.md` for complete setup instructions.**
 
 ---
 
@@ -102,6 +119,15 @@ You: Photography and hiking
 | `/reset` | Start fresh |
 | `/about` | About this bot |
 
+## 💬 Chatwoot Commands
+
+In Chatwoot chat, customers can use:
+
+| Command | What it does |
+|---------|-------------|
+| `reset` or `/reset` | Clear conversation |
+| Any text | Processed as gift query |
+
 ---
 
 ## 🎯 What the Agent Collects
@@ -130,6 +156,11 @@ Optional: Age group, special requirements (eco-friendly, personalized, etc.)
 **Telegram bot won't start:**
 - Check `TELEGRAM_BOT_TOKEN` is correct
 - Verify you got the token from @BotFather
+
+**Chatwoot bot doesn't respond:**
+- Check `CHATWOOT_ACCESS_TOKEN` is correct
+- Verify webhook URL is accessible (use ngrok for local testing)
+- Check server logs for errors
 
 ---
 

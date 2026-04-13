@@ -19,6 +19,7 @@ An intelligent, conversational gift recommendation agent that uses **human-in-th
 ### 💬 Multiple Interfaces
 - **CLI** - Interactive terminal-based conversation
 - **Telegram Bot** - Chat with the agent on Telegram
+- **Chatwoot** - Integrate as an agent bot in your helpdesk
 
 ## 🚀 Quick Start
 
@@ -71,6 +72,16 @@ python bot.py
 ```
 
 Then search for your bot on Telegram and start chatting!
+
+#### Chatwoot Integration
+
+```bash
+python chatwoot_bot.py
+```
+
+Then configure the webhook URL in your Chatwoot dashboard.
+
+**See `CHATWOOT_SETUP.md` for complete setup instructions.**
 
 ## 📖 How It Works
 
@@ -179,16 +190,30 @@ You: Can you suggest something more unique?
 - ✅ **User access control** (optional)
 - ✅ **Follow-up questions** with context
 
+### Chatwoot Features
+- ✅ **Webhook-based** integration
+- ✅ **Async processing** to avoid timeouts
+- ✅ **Conversation state** per Chatwoot conversation
+- ✅ **Auto-split** long messages
+- ✅ **Commands** support (reset, help)
+- ✅ **Production-ready** with FastAPI
+
 ## 🏗️ Project Structure
 
 ```
 gift-recommendation-agent/
-├── agent.py           # Core LangGraph agent with human-in-the-loop
-├── run.py             # CLI app (interactive + single query modes)
-├── bot.py             # Telegram bot wrapper
-├── .env.example       # Environment variables template
-├── README.md          # This file
-└── agent_graph.png    # (Generated) Agent graph visualization
+├── agent.py              # Core LangGraph agent with conversational flow
+├── run.py                # CLI app (interactive + single query + demo modes)
+├── bot.py                # Telegram bot wrapper
+├── chatwoot_bot.py       # Chatwoot webhook handler (FastAPI server)
+├── requirements.txt      # Project dependencies
+├── .env.example          # Environment variables template
+├── README.md             # This file
+├── CHATWOOT_SETUP.md     # Chatwoot integration guide
+├── QUICK_START.md        # Quick reference guide
+├── start_cli.bat         # Windows CLI launcher
+├── start_bot.bat         # Windows Telegram bot launcher
+└── start_chatwoot.bat    # Windows Chatwoot server launcher
 ```
 
 ## 🔧 Advanced Usage
