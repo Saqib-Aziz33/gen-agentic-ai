@@ -61,11 +61,11 @@ class GiftRequirements(BaseModel):
     """Extract gift recommendation requirements from user message."""
     recipient_relationship: Optional[str] = Field(
         default=None,
-        description="Relationship to recipient: spouse, partner, friend, parent, sibling, colleague, child, other"
+        description="Relationship to recipient: spouse, husband, wife, partner, friend, mom, dad, mother, father, parent, brother, sister, sibling, colleague, boss, coworker, son, daughter, nephew, niece, uncle, aunt, grandparent, grandchild, cousin, neighbor, teacher, student, or any other family member or friend"
     )
     occasion: Optional[str] = Field(
         default=None,
-        description="Gift occasion: birthday, anniversary, wedding, holiday, graduation, housewarming, Valentine's Day, Mother's Day, Father's Day, Christmas, other"
+        description="Gift occasion: birthday, anniversary, wedding, holiday, graduation, housewarming, Valentine's Day, Mother's Day, Father's Day, Christmas, baby shower, retirement, get well, thank you, or other special occasion"
     )
     budget_range: Optional[str] = Field(
         default=None,
@@ -73,15 +73,15 @@ class GiftRequirements(BaseModel):
     )
     recipient_interests: Optional[str] = Field(
         default=None,
-        description="Recipient's hobbies/interests: cooking, gaming, fitness, reading, music, travel, tech, art, fashion, gardening, other"
+        description="Recipient's hobbies/interests: cooking, gaming, fitness, reading, music, travel, tech, art, fashion, gardening, sports, outdoors, photography, writing, dancing, singing, cycling, hiking, swimming, yoga, meditation, crafts, woodworking, DIY, or any other hobby or interest"
     )
     recipient_age_group: Optional[Literal["child", "teen", "adult", "senior"]] = Field(
         default=None,
-        description="Age group if mentioned"
+        description="Age group if mentioned: child (0-12), teen (13-19), adult (20-64), senior (65+)"
     )
     special_requirements: Optional[str] = Field(
         default=None,
-        description="Special requirements: eco-friendly, handmade, personalized, luxury, practical, experience-based"
+        description="Special requirements: eco-friendly, handmade, personalized, luxury, practical, experience-based, sustainable, organic, local, vintage, custom-made"
     )
 
 
@@ -220,8 +220,19 @@ def analyze_user_input(state: GiftState) -> dict:
         return {"missing_fields": REQUIRED_FIELDS.copy()}
 
     try:
+        # Build context about what we already know
+        already_collected = {}
+        for field in REQUIRED_FIELDS:
+            if state.get(field):
+                already_collected[field] = state[field]
+        
+        system_prompt = "Extract gift recommendation requirements from the user's message. Only extract fields that are explicitly mentioned or strongly implied."
+        if already_collected:
+            system_prompt += f"\n\nAlready collected information: {already_collected}"
+            system_prompt += "\n\nIf the user mentions a field that's already collected, update it with the new value if it's different. If they confirm or reiterate something already collected, keep the existing value."
+
         result: GiftRequirements = llm.invoke([
-            SystemMessage(content="Extract gift recommendation requirements from the user's message. Only extract fields that are explicitly mentioned or strongly implied."),
+            SystemMessage(content=system_prompt),
             HumanMessage(content=latest_message)
         ])
 
@@ -231,12 +242,17 @@ def analyze_user_input(state: GiftState) -> dict:
             if value and not state.get(field):
                 updates[field] = value
                 print(f"[analyze_user_input] Extracted {field}: {value}")
+            elif value and state.get(field) and value.lower() != state.get(field, '').lower():
+                # Update if the value is different from what we have
+                updates[field] = value
+                print(f"[analyze_user_input] Updated {field}: {state.get(field)} -> {value}")
 
         # Also check optional fields
         for field in ["recipient_age_group", "special_requirements"]:
             value = getattr(result, field, None)
             if value and not state.get(field):
                 updates[field] = value
+                print(f"[analyze_user_input] Extracted optional {field}: {value}")
 
         return updates
 
@@ -254,46 +270,63 @@ def identify_missing_fields(state: GiftState) -> dict:
 
     llm = get_llm(structured_output_schema=MissingFieldsAnalysis, temperature=0.3)
 
-    # Build context from conversation
+    # Build context from what we've collected
+    current_info = {
+        "recipient_relationship": state.get("recipient_relationship") or "NOT PROVIDED",
+        "occasion": state.get("occasion") or "NOT PROVIDED",
+        "budget_range": state.get("budget_range") or "NOT PROVIDED",
+        "recipient_interests": state.get("recipient_interests") or "NOT PROVIDED",
+        "recipient_age_group": state.get("recipient_age_group") or "NOT PROVIDED",
+        "special_requirements": state.get("special_requirements") or "NOT PROVIDED"
+    }
+
+    # Determine which required fields are actually missing
     missing = [f for f in REQUIRED_FIELDS if not state.get(f)]
     optional_missing = [f for f in ["recipient_age_group", "special_requirements"] if not state.get(f)]
-
-    current_info = {
-        "relationship": state.get("recipient_relationship"),
-        "occasion": state.get("occasion"),
-        "budget": state.get("budget_range"),
-        "interests": state.get("recipient_interests"),
-        "age_group": state.get("recipient_age_group"),
-        "special": state.get("special_requirements")
-    }
 
     try:
         result: MissingFieldsAnalysis = llm.invoke([
             SystemMessage(content=f"""You are analyzing what information is missing for gift recommendations.
 
-Required fields: {', '.join(REQUIRED_FIELDS)}
-Optional fields: recipient_age_group, special_requirements
+Required fields for good recommendations: {', '.join(REQUIRED_FIELDS)}
+Optional fields (nice to have): recipient_age_group, special_requirements
 
-Current state: {current_info}
+Current state:
+- Relationship: {current_info['recipient_relationship']}
+- Occasion: {current_info['occasion']}
+- Budget: {current_info['budget_range']}
+- Interests: {current_info['recipient_interests']}
+- Age group: {current_info['recipient_age_group']}
+- Special requirements: {current_info['special_requirements']}
 
-Determine what's missing and generate a natural follow-up question."""),
-            HumanMessage(content="What information do we still need?")
+Fields still MISSING: {missing if missing else 'None - all required fields collected'}
+
+Your task:
+1. List which required fields are still missing (use exact field names from the required list)
+2. Pick the MOST IMPORTANT field to ask next (prioritize: relationship > occasion > budget > interests)
+3. Generate a NATURAL, friendly follow-up question that sounds conversational
+4. Set can_proceed to True ONLY if all 4 required fields are collected"""),
+            HumanMessage(content="Analyze what's missing and generate a follow-up question if needed.")
         ])
 
+        # Validate that missing_fields only contains actual missing fields
+        validated_missing = [f for f in result.missing_fields if f in REQUIRED_FIELDS and not state.get(f)]
+        
         updates = {
-            "missing_fields": result.missing_fields,
+            "missing_fields": validated_missing,
             "current_question": result.follow_up_question,
-            "conversation_complete": result.can_proceed
+            "conversation_complete": result.can_proceed and len(validated_missing) == 0
         }
 
-        print(f"[identify_missing_fields] Missing: {result.missing_fields}")
-        print(f"[identify_missing_fields] Can proceed: {result.can_proceed}")
+        print(f"[identify_missing_fields] Missing: {validated_missing}")
+        print(f"[identify_missing_fields] Can proceed: {updates['conversation_complete']}")
+        print(f"[identify_missing_fields] Question: {result.follow_up_question}")
 
         return updates
 
     except Exception as e:
         print(f"[identify_missing_fields] Error: {e}")
-        # Fallback
+        # Fallback to simple logic
         return {
             "missing_fields": missing,
             "current_question": FIELD_QUESTIONS.get(missing[0], "Can you tell me more?") if missing else "",

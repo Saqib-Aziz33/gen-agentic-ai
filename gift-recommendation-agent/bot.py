@@ -283,6 +283,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         # Run the agent with user's message
         result = run_conversation_turn(user_query, state)
 
+        # Update the stored state with any new values
+        for field in REQUIRED_FIELDS + ["recipient_age_group", "special_requirements"]:
+            if result.get(field):
+                state[field] = result[field]
+
         # Check what the agent returned
         if result.get("current_question") and not result.get("conversation_complete"):
             # Agent needs more information - ask follow-up question
@@ -291,11 +296,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             # Show typing indicator before sending question
             await update.message.chat.send_action(action=ChatAction.TYPING)
 
-            info = format_collected_info(state)
-            if info:
-                response = f"📋 {info}\n\n❓ {question}"
-            else:
-                response = f"❓ {question}"
+            # Show progress
+            collected_count = sum(1 for f in REQUIRED_FIELDS if state.get(f))
+            progress = f"\n\n📊 Progress: {collected_count}/{len(REQUIRED_FIELDS)} details collected"
+            
+            response = f"❓ {question}{progress}"
 
             await update.message.reply_text(response, parse_mode="Markdown")
 
