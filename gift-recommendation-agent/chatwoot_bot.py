@@ -21,6 +21,8 @@ Environment Variables:
     PORT - Server port (default: 5000)
 """
 
+# https://www.chatwoot.com/hc/user-guide/articles/1677497472-how-to-use-agent-bots
+
 import os
 import json
 import logging
