@@ -22,6 +22,7 @@ Environment Variables:
 """
 
 # https://www.chatwoot.com/hc/user-guide/articles/1677497472-how-to-use-agent-bots
+# https://github.com/chatwoot/rasa-agent-bot-demo/blob/master/rasa_flask_router.py
 
 import os
 import json
