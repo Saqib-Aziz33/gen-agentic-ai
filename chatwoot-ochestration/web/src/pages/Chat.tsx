@@ -53,7 +53,7 @@ const Chat = () => {
     }
   });
 
-  const handleSend = (e: React.FormEvent) => {
+  const handleSend = (e: React.FormEvent | React.KeyboardEvent) => {
     e.preventDefault();
     if (!input.trim() || apiChatMutation.isPending) return;
 
@@ -61,6 +61,13 @@ const Chat = () => {
     setMessages(prev => [...prev, { role: 'user', content: userMessage, time: new Date() }]);
     setInput('');
     apiChatMutation.mutate(userMessage);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend(e);
+    }
   };
 
   return (
@@ -166,17 +173,24 @@ const Chat = () => {
         </div>
 
         <form onSubmit={handleSend} className="relative group">
-          <input
-            type="text"
+          <textarea
+            rows={1}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your instruction or query here..."
-            className="w-full bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl pl-8 pr-24 py-6 text-white text-lg placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600/50 shadow-2xl transition-all font-medium"
+            onChange={(e) => {
+              setInput(e.target.value);
+              // Auto-grow: reset height then set to scrollHeight
+              e.target.style.height = 'auto';
+              e.target.style.height = `${e.target.scrollHeight}px`;
+            }}
+            onKeyDown={handleKeyDown}
+            placeholder="Type your instruction or query here... (Shift+Enter for new line)"
+            className="w-full bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl pl-8 pr-24 py-6 text-white text-lg placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600/50 shadow-2xl transition-all font-medium resize-none overflow-hidden leading-relaxed"
+            style={{ minHeight: '76px', maxHeight: '240px', overflowY: 'auto' }}
           />
           <button
             type="submit"
             disabled={!input.trim() || apiChatMutation.isPending}
-            className="absolute right-4 top-1/2 -translate-y-1/2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 p-4 rounded-2xl text-white shadow-xl shadow-indigo-600/20 disabled:shadow-none transform active:scale-95 transition-all"
+            className="absolute right-4 bottom-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 p-4 rounded-2xl text-white shadow-xl shadow-indigo-600/20 disabled:shadow-none transform active:scale-95 transition-all"
           >
             <Send className="w-5 h-5" />
           </button>
