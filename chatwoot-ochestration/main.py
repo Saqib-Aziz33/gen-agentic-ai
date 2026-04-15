@@ -8,6 +8,7 @@ from src.api.customer import router as customer_router
 from src.api.user import router as user_router
 from src.api.auth import router as auth_router
 from src.api.users import router as users_manager_router
+from fastapi.middleware.cors import CORSMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,6 +18,20 @@ async def lifespan(app: FastAPI):
     # Cleanup on shutdown
 
 app = FastAPI(title="Chatwoot Agent Bot API", lifespan=lifespan)
+
+# Middlewares
+origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,          # allowed origins
+    allow_credentials=True,
+    allow_methods=["*"],            # allow all HTTP methods
+    allow_headers=["*"],            # allow all headers
+)
 
 # Include routers
 app.include_router(auth_router)

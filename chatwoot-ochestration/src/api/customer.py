@@ -10,6 +10,24 @@ from src.core.auth import get_current_user
 
 router = APIRouter()
 
+@router.get("/api/customers", response_model=List[dict])
+async def list_customers(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """List all customers in the system"""
+    result = await db.execute(select(Customer))
+    return [
+        {
+            "id": c.id,
+            "chatwoot_contact_id": c.chatwoot_contact_id,
+            "name": c.name,
+            "email": c.email,
+            "phone": c.phone,
+            "created_at": c.created_at
+        } for c in result.scalars().all()
+    ]
+
 @router.get("/api/customers/{contact_id}")
 async def get_customer_info(
     contact_id: str, 
