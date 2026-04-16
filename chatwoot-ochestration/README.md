@@ -4,7 +4,70 @@ A full-stack AI agent application — FastAPI backend + React (Vite) frontend �
 
 ---
 
-## Prerequisites
+## 🐳 Docker Quick-Start (recommended)
+
+> Spins up **PostgreSQL + FastAPI backend + React/Nginx frontend** in one command.  
+> Only Docker Desktop is required — no Python or Node needed on the host.
+
+### 1 · Copy and fill in the backend `.env`
+
+```powershell
+# Windows (PowerShell)
+Copy-Item .env.example .env
+```
+```bash
+# macOS / Linux
+cp .env.example .env
+```
+
+Open `.env` and fill in your secrets (the `DATABASE_URL` is set automatically by Docker Compose):
+
+```env
+OPENAI_API_KEY=sk-...
+TAVILY_API_KEY=tvly-...
+CHATWOOT_BASE_URL=https://your-chatwoot-instance.com
+CHATWOOT_ACCESS_TOKEN=your_access_token
+```
+
+### 2 · Build & start all services
+
+```bash
+docker compose up --build
+```
+
+| Service  | URL |
+|----------|-----|
+| Frontend | http://localhost |
+| Backend API | http://localhost:8000 |
+| Swagger docs | http://localhost:8000/docs |
+| PostgreSQL | localhost:5432 |
+
+### 3 · Stop everything
+
+```bash
+docker compose down
+```
+
+To also delete the database volume:
+
+```bash
+docker compose down -v
+```
+
+### Environment variables reference
+
+| Variable | Default in Compose | Description |
+|----------|--------------------|-------------|
+| `POSTGRES_USER` | `agentuser` | DB username |
+| `POSTGRES_PASSWORD` | `agentpassword` | DB password |
+| `POSTGRES_DB` | `agentdb` | DB name |
+| `VITE_API_URL` | `http://localhost:8000` | Backend URL baked into the frontend build |
+
+Override any of the above by adding them to your `.env` file.
+
+---
+
+## Prerequisites (manual / local setup)
 
 Make sure the following are installed on your system **before** starting:
 
