@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "tsx watch index.ts"
   },
+  "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",
